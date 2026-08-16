@@ -196,6 +196,12 @@ EAF Platform
 
 ---
 
+## Bugs pendientes
+
+| Bug | Síntomas | Hipótesis | Prioridad |
+|---|---|---|---|
+| Toggle de activación en `/admin/super-user` no persiste | El switch cambia visualmente pero revierte — el update no se ejecuta en Supabase | Posible problema con enum cast de `account_status` o con la cookie de sesión en el Server Action. Se intentó browser client (RLS) y Server Action con service client — ambos fallan. Investigar con logs en Supabase | Baja |
+
 ## Bugs resueltos
 
 | Bug | Causa | Fix | Fecha |
@@ -211,9 +217,8 @@ EAF Platform
 | Ruta | Tipo | Descripción |
 |---|---|---|
 | `/` | Redirect | → `/dashboard` o `/login` según sesión |
-| `/login` | Public | Auth email/password + Google OAuth (Google pendiente) |
-| `/register` | Public | Registro de nuevos usuarios — activa flujo de onboarding |
-| `/onboarding` | Auth | Crear organización post-registro |
+| `/login` | Public | Auth email/password (Google OAuth pendiente) |
+| `/onboarding` | Auth | Crear organización post-registro (ruta legacy, no se usa con el flujo de super admin) |
 | `/dashboard` | Protected | KPIs y métricas principales |
 | `/sdc` | Protected | Sintonizador / La Fábrica |
 | `/campaigns` | Protected | Filtro de Banda / Blackhole 2.0 |
