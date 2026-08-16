@@ -134,20 +134,30 @@ EAF Platform
 | Redirect a `/onboarding` si el usuario no tiene org | ✅ | 2026-08-16 |
 | `role = super_admin` seteado para owner del proyecto | ✅ | 2026-08-16 |
 
-#### Bloque B — OAuth Meta + GHL 🔄 En progreso
+#### Bloque B — OAuth Meta + GHL ✅ (2026-08-16)
 
 | Ítem | Estado | Fecha |
 |---|---|---|
-| Página `/integrations` con botones "Conectar" | 🔄 | — |
-| `GET /api/oauth/meta` — redirect a Meta OAuth | ⬜ | — |
-| `GET /api/oauth/meta/callback` — exchange code → token | ⬜ | — |
-| Guardar `meta_oauth_token` + `meta_business_id` en `organizations` | ⬜ | — |
-| `GET /api/oauth/ghl` — redirect a GHL OAuth | ⬜ | — |
-| `GET /api/oauth/ghl/callback` — exchange code → tokens | ⬜ | — |
-| Guardar `ghl_access_token`, `ghl_refresh_token`, `ghl_location_id` | ⬜ | — |
+| Página `/integrations` con botones "Conectar" | ✅ | 2026-08-16 |
+| `GET /api/oauth/meta` — redirect a Meta OAuth | ✅ | 2026-08-16 |
+| `GET /api/oauth/meta/callback` — exchange code → long-lived token | ✅ | 2026-08-16 |
+| Guardar `meta_oauth_token` + `meta_business_id` en `organizations` | ✅ | 2026-08-16 |
+| `GET /api/oauth/ghl` — redirect a GHL OAuth | ✅ | 2026-08-16 |
+| `GET /api/oauth/ghl/callback` — exchange code → tokens | ✅ | 2026-08-16 |
+| Guardar `ghl_access_token`, `ghl_refresh_token`, `ghl_location_id` | ✅ | 2026-08-16 |
 | Token refresh automático para GHL (access token expira cada 24h) | ⬜ | — |
 
-#### Bloque C — Módulos con datos reales ⬜ Pendiente
+#### Bloque C — Flujo de registro de usuarios ✅ (2026-08-16)
+
+| Ítem | Estado | Fecha |
+|---|---|---|
+| Página `/register` — formulario con nombre, email, contraseña | ✅ | 2026-08-16 |
+| Login actualizado con link "Registrate" → `/register` | ✅ | 2026-08-16 |
+| Email de confirmación con redirect a `/onboarding` | ✅ | 2026-08-16 |
+| Pantalla "Revisá tu email" post-registro | ✅ | 2026-08-16 |
+| `full_name` pasado en signUp metadata → trigger lo guarda en `profiles` | ✅ | 2026-08-16 |
+
+#### Bloque D — Módulos con datos reales ⬜ Pendiente
 
 | Ítem | Estado | Fecha |
 |---|---|---|
@@ -201,7 +211,8 @@ EAF Platform
 | Ruta | Tipo | Descripción |
 |---|---|---|
 | `/` | Redirect | → `/dashboard` o `/login` según sesión |
-| `/login` | Public | Auth email/password + Google OAuth |
+| `/login` | Public | Auth email/password + Google OAuth (Google pendiente) |
+| `/register` | Public | Registro de nuevos usuarios — activa flujo de onboarding |
 | `/onboarding` | Auth | Crear organización post-registro |
 | `/dashboard` | Protected | KPIs y métricas principales |
 | `/sdc` | Protected | Sintonizador / La Fábrica |

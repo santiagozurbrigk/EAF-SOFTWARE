@@ -117,8 +117,8 @@ export default function LoginPage() {
 
       <p className="text-center text-xs text-muted-foreground">
         ¿No tenés cuenta?{' '}
-        <a href="mailto:admin@eaf.com" className="text-primary hover:underline">
-          Solicitá acceso
+        <a href="/register" className="text-primary hover:underline">
+          Registrate
         </a>
       </p>
     </div>
