@@ -157,13 +157,36 @@ EAF Platform
 | Pantalla "Revisá tu email" post-registro | ✅ | 2026-08-16 |
 | `full_name` pasado en signUp metadata → trigger lo guarda en `profiles` | ✅ | 2026-08-16 |
 
-#### Bloque D — Módulos con datos reales ⬜ Pendiente
+#### Bloque D — Módulos con datos reales ✅ (2026-08-16)
 
 | Ítem | Estado | Fecha |
 |---|---|---|
-| SDC Monitor — Instagram Graph API → `master_videos` reales | ⬜ | — |
-| Dashboard KPIs — queries reales a Supabase | ⬜ | — |
-| Lazarus sender — cron/Edge Function para despachar pulsos | ⬜ | — |
+| Migración SQL: `caption` + `permalink` + unique index en `master_videos` | ✅ | 2026-08-16 |
+| Dashboard KPIs — queries reales a Supabase (videos, pulsos, integraciones) | ✅ | 2026-08-16 |
+| SDC Monitor — `master_videos` reales desde Supabase | ✅ | 2026-08-16 |
+| `POST /api/sdc/sync` — sincroniza Reels desde Instagram Graph API | ✅ | 2026-08-16 |
+| SDC `SyncButton` — botón client-side para trigger manual de sync | ✅ | 2026-08-16 |
+| SDC `WinnerToggle` — marcado manual de Winners con Server Action | ✅ | 2026-08-16 |
+| Lazarus — `lazarus_pulses` reales desde Supabase | ✅ | 2026-08-16 |
+| `POST /api/lazarus/dispatch` — envía pulso vía GHL SMS API | ✅ | 2026-08-16 |
+| Lazarus `DispatchButton` — botón client-side para envío manual | ✅ | 2026-08-16 |
+| `lib/ghl/client.ts` — helpers GHL con refresh automático de token | ✅ | 2026-08-16 |
+
+#### ✅ Qué funciona sin API keys externas (solo Supabase)
+- Dashboard: muestra conteos reales de videos, pulsos y estado de integraciones
+- Lazarus: muestra la cola de pulsos real, métricas de tasa de respuesta
+- SDC: muestra los videos ya sincronizados en `master_videos`
+- Toggle Winner: funciona con solo Supabase
+
+#### 🔑 Qué requiere probar con cuentas reales conectadas
+
+| Feature | Requiere | Cómo conectar |
+|---|---|---|
+| `POST /api/sdc/sync` — importar Reels desde Instagram | `meta_oauth_token` con scopes `instagram_basic` + `instagram_manage_insights` | `/integrations` → Conectar Meta |
+| Insights de engagement (plays, reach, likes) | Cuenta de Instagram Business + scope `instagram_manage_insights` | `/integrations` → Conectar Meta |
+| `POST /api/lazarus/dispatch` — enviar SMS vía GHL | `ghl_access_token` + lead existente en GHL con mismo `lead_id` | `/integrations` → Conectar GHL |
+| Webhook `/api/ghl/lost` — recibir no-shows automáticamente | `GHL_WEBHOOK_SECRET` en env vars + webhook configurado en GHL | Configurar en GHL → Automation → Webhooks |
+| Refresh automático GHL token (24h) | `GHL_CLIENT_ID` + `GHL_CLIENT_SECRET` en env vars | Ya en `.env` — se ejecuta automáticamente en el dispatch |
 
 ---
 
@@ -193,6 +216,17 @@ EAF Platform
 
 ### 2026-08-16 — super_admin sin org
 **Decisión:** El usuario `super_admin` puede acceder al dashboard aunque no tenga organización propia. La condición de redirect a onboarding es `!org && !isSuperAdmin`.
+
+### 2026-08-16 — SDC sync via Instagram Basic Display API
+**Decisión:** La ruta `/api/sdc/sync` usa `graph.instagram.com/me/media` (Instagram Basic Display API) con el `meta_oauth_token` almacenado en `organizations`. Los insights de engagement (plays, reach) se obtienen de `/{media_id}/insights` y requieren scope `instagram_manage_insights` + cuenta Business. Si no hay cuenta Business o el scope falla, la función degrada graciosamente a 0 en los campos de engagement.
+**Nota:** El upsert usa `onConflict: 'instagram_media_id'` que mapea al unique index creado en la migración 004.
+
+### 2026-08-16 — Lazarus dispatch manual vs automático
+**Decisión:** La ruta `/api/lazarus/dispatch` permite despacho manual de pulsos uno a uno (para el MVP). El despacho automático (cron que procesa todos los pulsos con `scheduled_for <= now()`) va en Sprint 3 como Edge Function o worker Railway.
+**GHL API:** Se usa `POST /conversations/messages` con `type: SMS`. El `contactId` es el `lead_id` almacenado en `lazarus_pulses` (viene del webhook de GHL como `contact_id`).
+
+### 2026-08-16 — GHL token refresh automático
+**Implementación:** `lib/ghl/client.ts` implementa refresh automático: si el envío devuelve 401, refresca el token con el `ghl_refresh_token` guardado, actualiza `organizations`, y reintenta. El refresh token de GHL dura 365 días.
 
 ---
 
