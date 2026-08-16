@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { MetricCard } from '@/components/metric-card'
 import { ActivationToggle } from './activation-toggle'
+import { CreateUserForm } from './create-user-form'
 
 export const metadata: Metadata = { title: 'Super Admin' }
 
@@ -66,6 +67,9 @@ export default async function SuperAdminPage() {
         <MetricCard title="Activas"        value={String(active)}  icon={Activity} iconColor="text-emerald-400" />
         <MetricCard title="Pendientes"     value={String(pending)} icon={Shield}   iconColor="text-amber-400" />
       </div>
+
+      {/* Crear nuevo cliente */}
+      <CreateUserForm />
 
       <Card>
         <CardHeader>
