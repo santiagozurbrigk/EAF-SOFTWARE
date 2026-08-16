@@ -21,17 +21,27 @@ export async function GET() {
     return NextResponse.redirect(new URL('/login', process.env.NEXT_PUBLIC_APP_URL!))
   }
 
+  // Verificar rol del usuario
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single()
+
+  const isSuperAdmin = profile?.role === 'super_admin'
+
   const { data: org } = await supabase
     .from('organizations')
     .select('id, status')
     .eq('owner_id', user.id)
-    .single()
+    .maybeSingle()
 
   if (!org) {
     return NextResponse.redirect(new URL('/onboarding', process.env.NEXT_PUBLIC_APP_URL!))
   }
 
-  if (org.status !== 'active') {
+  // Solo bloquear si la org está pendiente Y el usuario no es super_admin
+  if (org.status !== 'active' && !isSuperAdmin) {
     return NextResponse.redirect(new URL('/dashboard', process.env.NEXT_PUBLIC_APP_URL!))
   }
 
