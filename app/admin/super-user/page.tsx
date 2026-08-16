@@ -24,17 +24,15 @@ export default async function SuperAdminPage() {
 
   if (!user) redirect('/login')
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data: profile } = await (supabase as any)
+  const { data: profile } = await supabase
     .from('profiles')
     .select('role')
     .eq('id', user.id)
-    .single() as { data: { role: string } | null }
+    .single()
 
   if (profile?.role !== 'super_admin') redirect('/dashboard')
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data: orgs } = await (supabase as any)
+  const { data: orgs } = await supabase
     .from('organizations')
     .select('id, name, status, meta_oauth_token, ghl_access_token, profiles!owner_id(email, full_name)')
     .order('created_at', { ascending: false }) as { data: OrgRow[] | null }
@@ -44,9 +42,9 @@ export default async function SuperAdminPage() {
   const pending = orgs?.filter((o) => o.status === 'pending_activation').length ?? 0
 
   const statusConfig: Record<string, { label: string; variant: 'success' | 'warning' | 'outline' }> = {
-    active:             { label: 'Activo',    variant: 'success'  },
-    pending_activation: { label: 'Pendiente', variant: 'warning'  },
-    suspended:          { label: 'Suspendido',variant: 'outline'  },
+    active:             { label: 'Activo',     variant: 'success'  },
+    pending_activation: { label: 'Pendiente',  variant: 'warning'  },
+    suspended:          { label: 'Suspendido', variant: 'outline'  },
   }
 
   return (

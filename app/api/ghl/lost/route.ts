@@ -1,5 +1,8 @@
 import { NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
+import type { Database } from '@/lib/supabase/database.types'
+
+type PulseAsset = Database['public']['Enums']['pulse_asset_type']
 
 /**
  * POST /api/ghl/lost
@@ -37,15 +40,14 @@ export async function POST(req: Request) {
       )
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const supabase = createServiceClient() as any
+    const supabase = createServiceClient()
 
     // 1. Buscar la organización que corresponde a esta subcuenta de GHL
     const { data: org, error: orgError } = await supabase
       .from('organizations')
       .select('id, status')
       .eq('ghl_location_id', location_id)
-      .single() as { data: { id: string; status: string } | null; error: unknown }
+      .single()
 
     if (orgError || !org) {
       return NextResponse.json(
@@ -67,7 +69,7 @@ export async function POST(req: Request) {
       .select('id')
       .eq('lead_email', email)
       .eq('status', 'queued')
-      .maybeSingle() as { data: { id: string } | null }
+      .maybeSingle()
 
     if (activePulse) {
       return NextResponse.json({
@@ -81,14 +83,14 @@ export async function POST(req: Request) {
       .select('id')
       .eq('organization_id', org.id)
       .eq('status', true)
-      .maybeSingle() as { data: { id: string } | null }
+      .maybeSingle()
 
     if (!campaign) {
       const { data: newCampaign, error: campaignError } = await supabase
         .from('lazarus_campaigns')
         .insert({ organization_id: org.id, name: 'Campaña Lazarus Principal', status: true })
         .select('id')
-        .single() as { data: { id: string } | null; error: unknown }
+        .single()
 
       if (campaignError) throw campaignError
       campaign = newCampaign
@@ -106,7 +108,7 @@ export async function POST(req: Request) {
         lead_name:     first_name ?? 'Contacto',
         lead_phone:    phone ?? null,
         lead_email:    email,
-        asset_offered: 'pdf_case_study',
+        asset_offered: 'pdf_case_study' as PulseAsset,
         status:        'queued',
         scheduled_for: scheduledFor.toISOString(),
       })

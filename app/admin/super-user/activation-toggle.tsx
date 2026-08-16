@@ -21,8 +21,7 @@ export function ActivationToggle({ orgId, currentStatus }: ActivationToggleProps
     setOptimistic(!optimistic)
 
     startTransition(async () => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const supabase = createClient() as any
+      const supabase = createClient()
       const { error } = await supabase
         .from('organizations')
         .update({ status: newStatus })

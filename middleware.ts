@@ -1,5 +1,6 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import type { Database } from '@/lib/supabase/database.types'
 
 /**
  * Middleware de autenticación.
@@ -10,7 +11,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request })
 
-  const supabase = createServerClient(
+  const supabase = createServerClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
@@ -55,8 +56,7 @@ export async function middleware(request: NextRequest) {
       .eq('id', user.id)
       .single()
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    if ((profile as any)?.role !== 'super_admin') {
+    if (profile?.role !== 'super_admin') {
       return NextResponse.redirect(new URL('/dashboard', request.url))
     }
   }
