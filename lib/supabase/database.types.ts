@@ -197,32 +197,38 @@ export type Database = {
       }
       master_videos: {
         Row: {
+          caption: string | null
           created_at: string
           id: string
           instagram_media_id: string | null
           is_winner: boolean | null
           organic_engagement_rate: number | null
           organic_views: number | null
+          permalink: string | null
           raw_video_url: string
           user_id: string
         }
         Insert: {
+          caption?: string | null
           created_at?: string
           id?: string
           instagram_media_id?: string | null
           is_winner?: boolean | null
           organic_engagement_rate?: number | null
           organic_views?: number | null
+          permalink?: string | null
           raw_video_url: string
           user_id: string
         }
         Update: {
+          caption?: string | null
           created_at?: string
           id?: string
           instagram_media_id?: string | null
           is_winner?: boolean | null
           organic_engagement_rate?: number | null
           organic_views?: number | null
+          permalink?: string | null
           raw_video_url?: string
           user_id?: string
         }
