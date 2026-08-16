@@ -12,19 +12,24 @@ export default async function DashboardLayout({
 
   if (!user) redirect('/login')
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data: profile } = await (supabase as any)
+  const { data: profile } = await supabase
     .from('profiles')
     .select('role')
     .eq('id', user.id)
-    .single() as { data: { role: string } | null }
+    .single()
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data: org } = await (supabase as any)
+  const { data: org } = await supabase
     .from('organizations')
     .select('id, name, status')
     .eq('owner_id', user.id)
-    .single() as { data: { id: string; name: string; status: string } | null }
+    .maybeSingle()
+
+  const isSuperAdmin = profile?.role === 'super_admin'
+
+  // Usuarios sin org deben completar el onboarding (excepto super_admin que no necesita org)
+  if (!org && !isSuperAdmin) {
+    redirect('/onboarding')
+  }
 
   if (org?.status === 'pending_activation') {
     return (
@@ -50,8 +55,6 @@ export default async function DashboardLayout({
       </div>
     )
   }
-
-  const isSuperAdmin = profile?.role === 'super_admin'
 
   return (
     <div className="flex min-h-screen">
