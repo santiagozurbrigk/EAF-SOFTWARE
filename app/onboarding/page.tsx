@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createServiceClient } from '@/lib/supabase/server'
 
 export const metadata: Metadata = { title: 'Configurar workspace — EAF' }
 
@@ -14,16 +14,30 @@ async function createOrgAction(formData: FormData) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { error } = await supabase
-    .from('organizations')
-    .insert({ name, owner_id: user.id })
+  // El super_admin crea su org directamente en 'active' (sin esperar activación)
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single()
 
-  if (error) {
-    console.error('[onboarding] Error creando org:', error.message)
-    // El redirect igual ocurre — el super_admin verá la org en pending_activation
+  const isSuperAdmin = profile?.role === 'super_admin'
+
+  if (isSuperAdmin) {
+    // Usar service client para poder setear status: 'active' directamente
+    const service = createServiceClient()
+    const { error } = await service
+      .from('organizations')
+      .insert({ name, owner_id: user.id, status: 'active' })
+    if (error) console.error('[onboarding] Error creando org (super_admin):', error.message)
+  } else {
+    const { error } = await supabase
+      .from('organizations')
+      .insert({ name, owner_id: user.id })
+    if (error) console.error('[onboarding] Error creando org:', error.message)
   }
 
-  redirect('/dashboard')
+  redirect('/integrations')
 }
 
 export default async function OnboardingPage() {
@@ -90,8 +104,7 @@ export default async function OnboardingPage() {
 
         {/* Info */}
         <p className="text-center text-xs text-muted-foreground">
-          Tu cuenta quedará en revisión y será activada por el equipo de EAF
-          en las próximas 24 hs.
+          Tu cuenta quedará en revisión y será activada por el equipo de EAF en las próximas 24 hs.
         </p>
       </div>
     </div>

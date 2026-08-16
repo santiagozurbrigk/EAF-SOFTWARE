@@ -38,6 +38,15 @@ export default async function IntegrationsPage({ searchParams }: PageProps) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
+  // Verificar rol del usuario
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single()
+
+  const isSuperAdmin = profile?.role === 'super_admin'
+
   // Leer tokens reales de la org del usuario
   const { data: org } = await supabase
     .from('organizations')
@@ -50,6 +59,8 @@ export default async function IntegrationsPage({ searchParams }: PageProps) {
   const metaConnected = Boolean(org?.meta_oauth_token)
   const ghlConnected  = Boolean(org?.ghl_access_token)
   const isActive      = org?.status === 'active'
+  // Super admin puede conectar con cualquier estado de org; clientes solo si están activos
+  const canOAuth      = Boolean(org) && (isActive || isSuperAdmin)
 
   const integrations = [
     {
@@ -131,8 +142,35 @@ export default async function IntegrationsPage({ searchParams }: PageProps) {
         </Card>
       )}
 
-      {/* Warning si org no está activa */}
-      {!isActive && org && (
+      {/* Super admin sin org: necesita crear la suya primero */}
+      {isSuperAdmin && !org && (
+        <Card className="border-blue-500/30 bg-blue-500/5">
+          <CardContent className="p-4">
+            <div className="flex items-start justify-between gap-4">
+              <div className="flex items-start gap-3">
+                <span className="text-lg">💡</span>
+                <div>
+                  <p className="text-sm font-medium text-blue-300">
+                    Creá tu organización primero
+                  </p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">
+                    Para conectar Meta y GHL a tu propia cuenta, necesitás crear tu organización.
+                    Como super admin, quedará activa de inmediato.
+                  </p>
+                </div>
+              </div>
+              <a href="/onboarding">
+                <Button size="sm" variant="outline" className="shrink-0">
+                  Crear mi org →
+                </Button>
+              </a>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Warning si org no está activa (solo para clientes, no super_admin) */}
+      {!isActive && org && !isSuperAdmin && (
         <Card className="border-amber-500/30 bg-amber-500/5">
           <CardContent className="p-4">
             <div className="flex items-start gap-3">
@@ -150,8 +188,8 @@ export default async function IntegrationsPage({ searchParams }: PageProps) {
         </Card>
       )}
 
-      {/* Warning Meta primero */}
-      {isActive && !metaConnected && (
+      {/* Warning Meta primero — solo cuando ya puede conectar pero todavía no lo hizo */}
+      {canOAuth && !metaConnected && (
         <Card className="border-amber-500/30 bg-amber-500/5">
           <CardContent className="p-4">
             <div className="flex items-start gap-3">
@@ -174,7 +212,7 @@ export default async function IntegrationsPage({ searchParams }: PageProps) {
       <div className="space-y-4">
         {integrations.map((integration) => {
           const isConnected  = integration.connected
-          const canConnect   = isActive && Boolean(integration.connectHref)
+          const canConnect   = canOAuth && Boolean(integration.connectHref)
           const StatusIcon   = isConnected ? CheckCircle : XCircle
           const statusColor  = isConnected ? 'text-emerald-400' : 'text-muted-foreground'
           const statusLabel  = isConnected ? 'Conectado' : 'Sin conectar'
