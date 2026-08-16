@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { Switch } from '@/components/ui/switch'
-import { createClient } from '@/lib/supabase/client'
+import { toggleOrgStatus } from './actions'
 
 interface ActivationToggleProps {
   orgId: string
@@ -21,15 +21,12 @@ export function ActivationToggle({ orgId, currentStatus }: ActivationToggleProps
     setOptimistic(!optimistic)
 
     startTransition(async () => {
-      const supabase = createClient()
-      const { error } = await supabase
-        .from('organizations')
-        .update({ status: newStatus })
-        .eq('id', orgId)
+      const result = await toggleOrgStatus(orgId, newStatus)
 
-      if (error) {
+      if (result.error) {
+        // Revertir estado optimista si hubo error
         setOptimistic(optimistic)
-        console.error('Error actualizando estado:', error)
+        console.error('Error actualizando estado:', result.error)
         return
       }
 
