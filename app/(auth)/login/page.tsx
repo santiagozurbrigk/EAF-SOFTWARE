@@ -116,10 +116,8 @@ export default function LoginPage() {
       </Button>
 
       <p className="text-center text-xs text-muted-foreground">
-        ¿No tenés cuenta?{' '}
-        <a href="/register" className="text-primary hover:underline">
-          Registrate
-        </a>
+        ¿No tenés acceso?{' '}
+        <span className="text-foreground/50">Contactá al equipo de EAF.</span>
       </p>
     </div>
   )
